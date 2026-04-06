@@ -76,7 +76,7 @@ body {
 }
 
 .input-wrapper button:hover{
-  color: #4eeff5;
+  color: #1ad5db;
 }
 
 .hint {
@@ -157,8 +157,18 @@ footer {
 
 }
   
+.logo {
+  display: flex;
+  align-items: center; /* alinha verticalmente */
+  gap: 10px; /* espaço entre ícone e texto */
+  margin: 0 auto;
+  width: fit-content;
+}
 
-
+.icon {
+  width: 60px; /* ajusta o tamanho */
+  height: 60px;
+}
 
 
 
