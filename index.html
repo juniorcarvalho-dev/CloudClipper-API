@@ -1,66 +1,116 @@
 <!DOCTYPE html>
 
-<html lang="pt-BR">
+<html lang="pt-BR"> 
 
 <head>
   
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClipMaker</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"> <!-- Define a codificação -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--configurações de visualização para dispositivos móveis-->
+  <title>FlashTrend</title> <!-- Título exibido na aba do navegador -->
+  <link rel="stylesheet" href="styles.css"> <!-- Inclui o arquivo de estilos CSS local -->
+  <link rel="icon" href="IcoPrin.png" type="image/png" > <!-- Icone do Título -->
+  <script src="https://cdn.tailwindcss.com"></script> <!-- Tailwind CSS -->
+  <style>
+  body {
+    font-family: "Lucida Sans", "Lucida Grande", sans-serif; 
+  }
+  </style> <!-- Fonte Lucida -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 </head>
 
 <body>
   
-  <h1>ClipMaker</h1>
-  
-  <button id="upload_widget" class="cloudinary-button">Upload files</button>
-
-<script src="https://upload-widget.cloudinary.com/latest/global/all.js" type="text/javascript"></script>  
-
-<script type="text/javascript">  
-
-const app = {
-    transcriptionURL: '',
-    public_id: '',
-    waitForTranscription: async () => {
-      const maxAttempts = 30;
-      const delay = 2000; // 2 seconds
-
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        const url = `https://res.cloudinary.com/${config.cloudName}/raw/upload/v${Date.now()}/${app.public_id}.transcript`
-        try {
-          console.log(`Tentativa ${attempt}/${maxAttempts}: Verificando transcrição...`);
-          const response = await fetch(url);
-
-          if (response.ok) {
-            app.transcriptionURL = url;
-            console.log('Transcrição encontrada', url);
-            return true;           
-          } 
-        } catch (error) {
-          console.log(`Tentativa ${attempt} falhou: ${error.message}`);
-        }
-
-        if (attempt < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
-      console.log('Transcrição não encontrada após várias tentativas.');
-      return false;
-    },
-
-    getTranscriptionURL: async () => {
-      const response = await fetch(app.transcriptionURL)
-      return response.text()
-    },
+    <header>
+      <h1>FlashTrend</h1>
+      <nav>
+        <a href="#">Início</a>
+        <a href="#">Upload</a>
+        <a href="#">Contato</a>
+      </nav>
+    </header>
+  <section class="app-container"> 
+    <div class="interface-box">
+        <div class="input-group">
+            <label for="apiKey">Chave da API do GEMINI:</label>
+                <div class="input-wrapper">
+                  <input type="password" id="apiKey" placeholder="      Insira a sua API key">
+                  <button type="button" id="toggleKey"> <img width="16" height="16" src="https://img.icons8.com/small/16/invisible.png" alt="invisible"/> </button>
+                </div>
+            <small class="hint">Sua chave não será compartilhada !</small>
+        </div>
     
-    getViralMoment: async () => {
-      const transcription = await app.getTranscriptionURL()
-      const model = 'gemini-2.5-flash'
-      const endpointGemini = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
-      
-      const prompt = `
+    
+        <div class="video-container">
+            <h2>🎬 Destaque do Momento</h2>
+            <video id="video" controls class="video-player"></video>  <!-- Elemento de vídeo que irá reproduzir o trecho viral gerado -->
+        </div>
+    
+        <button id="uploadwidget" class="cloudinary-button">Upload files</button>
+    </div>  
+</section>
+  
+
+  <script src="https://upload-widget.cloudinary.com/latest/global/all.js" type="text/javascript"></script> <!-- Inclusão do script da Cloudinary para o widget de upload -->
+
+  <script type="text/javascript">
+    // Referências aos elementos da página que serão usados pelo JavaScript
+    const el = {
+     
+      video: document.getElementById('video'),
+      apiKey: document.getElementById('apiKey'),
+      button: document.getElementById('uploadwidget')
+  }
+
+    const app = {
+      transcriptionURL: '', // URL onde a transcrição será consultada
+      public_id: '', // ID público do arquivo enviado para a Cloudinary
+
+      // Aguarda até que a transcrição esteja disponível na Cloudinary
+      waitForTranscription: async () => {
+        const maxTentativas = 30;
+        const delay = 2000; // intervalo de 2 segundos entre tentativas
+
+        for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
+          const url = `https://res.cloudinary.com/${config.cloudName}/raw/upload/v${Date.now()}/${app.public_id}.transcript`
+          try {
+            console.log(`Tentativa ${tentativa}/${maxTentativas}: Verificando transcrição...`);
+            const response = await fetch(url);
+
+            if (response.ok) {
+              // Se a transcrição estiver disponível, salva a URL e retorna sucesso
+              app.transcriptionURL = url;
+              console.log('Transcrição encontrada', url);
+              return true;
+            }
+          } catch (error) {
+            // Mostra erro de rede ou de acesso à URL
+            console.log(`Tentativa ${tentativa} falhou: ${error.message}`);
+          }
+
+          if (tentativa < maxTentativas) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+
+        console.log('Transcrição não encontrada após várias tentativas.');
+        return false;
+      },
+
+      // Busca o texto da transcrição a partir da URL guardada
+      getTranscriptionURL: async () => {
+        const response = await fetch(app.transcriptionURL);
+        return response.text();
+      },
+
+      // Chama a API Gemini para identificar o momento viral do vídeo
+      getViralMoment: async () => {
+        const transcription = await app.getTranscriptionURL();
+        const model = 'gemini-2.5-flash';
+        const endpointGemini = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+
+        // Prompt enviado ao Gemini para que ele retorne apenas o trecho de vídeo desejado
+        const prompt = `
 Role: You are a professional video editor specializing in viral content.
 Task: Analyze the transcription below and identify the most engaging, funny, or surprising segment.
 Constraints:
@@ -70,98 +120,109 @@ Constraints:
 4. CRITICAL: Do not use markdown, do not use quotes, do not explain. Return ONLY the raw string.
 
 Transcription:
-${transcription}`
+${transcription}`;
 
-      const headers = {
-        'x-goog-api-key': 'AIzaSyCexSGTHFrNJFHMIIaae_j2Es5vf7M1g84',
-        'Content-Type': 'application/json'
-      }
+        const headers = {
+          'x-goog-api-key': el.apiKey.value,
+          'Content-Type': 'application/json'
+        };
 
-      const contents = [
-        {
-          parts: [
-            {
-              text: prompt
-            }
-          ]
-        }
-      ]
-
-      const maxAttempts = 3;
-      const retryDelay = 1500; // ms
-
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-          const response = await fetch(endpointGemini, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ contents })
-          })
-
-          if (!response.ok) {
-            const text = await response.text();
-            throw new Error(`Gemini error ${response.status}: ${text}`);
+        const contents = [
+          {
+            parts: [
+              {
+                text: prompt
+              }
+            ]
           }
+        ];
 
-      const data = await response.json();
-      const rawText = data.candidates[0].content.parts[0].text.trim()
-      return rawText.replace(/'''/g, '').replace(/json/g,"").trim()
-    
-    } catch (error) {
-      const isLastAttempt = attempt === maxAttempts
-      console.log(`Gemini falhou (tentativa ${attempt}/${maxAttempts}):`, error.message)
-      
-      if (isLastAttempt) {
-        throw error
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, retryDelay))
-      
+        const maxTentativas = 3;
+        const retryDelay = 1500; // ms
+
+        for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
+          try {
+            const response = await fetch(endpointGemini, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ contents })
+            });
+
+            if (!response.ok) {
+              const text = await response.text();
+              throw new Error(`Gemini error ${response.status}: ${text}`);
+            }
+
+            const data = await response.json();
+            const rawText = data.candidates[0].content.parts[0].text.trim();
+
+            // Remove textos extras e retorna apenas o formato esperado
+            return rawText.replace(/'''/g, '').replace(/json/g, "").trim();
+
+          } catch (error) {
+            const isLastAttempt = tentativa === maxTentativas;
+            console.log(`Gemini falhou (tentativa ${tentativa}/${maxTentativas}):`, error.message);
+
+            if (isLastAttempt) {
+              throw error;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          }
+        }
       }
     }
-  }
-}
 
-const config = {
-  cloudName: 'dokq0iokf', 
-  uploadPreset: 'upload_nlw'
-};
+    // Configuração do Cloudinary para o widget de upload
+    const config = {
+      cloudName: 'dokq0iokf',
+      uploadPreset: 'upload_nlw'
+    };
 
+    // Cria o widget de upload da Cloudinary com callback de resultado
+    const myWidget = cloudinary.createUploadWidget(
+      config,
+      async (error, result) => {
+        console.log('error: ', error);
 
-const myWidget = cloudinary.createUploadWidget( 
-    config,
-   async (error, result) => { 
-        console.log('error: ', error)
-        if (!error && result && result.event === "success") { 
-          console.log('Done! Here is the image info: ', result.info);
+        if (!error && result && result.event === "success") {
+          console.log('Upload concluído com sucesso:', result.info);
+
+          // Salva o ID público do arquivo enviado para gerar o vídeo clip depois
           app.public_id = result.info.public_id;
-          
+
           try {
             const isReady = await app.waitForTranscription();
             if (!isReady) {
-                throw new Error('erro ao buscar transcrição')
+              throw new Error('erro ao buscar transcrição');
             }
-          
-            const viralMoment = await app.getViralMoment() //so_12.5, eo_45.2
-            const viralMomentURL = `https://res.cloudinary.com/${config.cloudName}/raw/upload/${viralMoment}/${app.public_id}.mp4`
 
-          console.log('Viral moment URL:', viralMoment)
+            // Solicita ao Gemini o trecho viral e monta a URL do vídeo final
+            const viralMoment = await app.getViralMoment(); // so_12.5, eo_45.2
+            const viralMomentURL = `https://res.cloudinary.com/${config.cloudName}/video/upload/${viralMoment}/${app.public_id}.mp4`;
+            el.video.setAttribute('src', viralMomentURL);
 
           } catch (error) {
-            console.log({ error })
+            console.log({ error });
           }
-          
         }
-    }
-)
+      }
+    );
 
-document.getElementById("upload_widget").addEventListener("click", function(){
-    myWidget.open();
-  }, false);
+    // Adiciona o clique no botão para abrir o widget apenas se a chave de API estiver preenchida
+    el.button.addEventListener("click", function () {
+      if (!el.apiKey.value) {
+        alert('Por favor, informe sua chave de API do GEMINI para continuar.');
+        el.apiKey.focus();
+        return;
+      }
+      myWidget.open();
+    }, false);
+  </script>
 
-</script>
+<footer>
+  <p>&copy; 2026 FlashTrend - Todos os direitos reservados</p>
+</footer>
 
 
 </body>
-
-</html>
