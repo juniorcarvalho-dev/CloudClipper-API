@@ -16,6 +16,7 @@
   }
   </style> <!-- Fonte Lucida -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
 </head>
 
@@ -46,10 +47,14 @@
     
         <div class="video-container">
             <h2>🎬 Destaque do Momento</h2>
+            <div id="loader" class="loader hidden">
+                <div class="spinner"></div>
+                <p>Processando transcrição e gerando clipe viral...</p>
+            </div>
             <video id="video" controls class="video-player"></video>  <!-- Elemento de vídeo que irá reproduzir o trecho viral gerado -->
         </div>
     
-        <button id="uploadwidget" class="cloudinary-button">Upload files</button>
+        <button id="uploadwidget" class="cloudinary-button glow">Upload files</button>
     </div>  
 </section>
   
@@ -62,8 +67,21 @@
      
       video: document.getElementById('video'),
       apiKey: document.getElementById('apiKey'),
-      button: document.getElementById('uploadwidget')
+      button: document.getElementById('uploadwidget'),
+      loader: document.getElementById('loader'),
+      toggleKey: document.getElementById('toggleKey')
   }
+
+    // Função para alternar visibilidade da senha
+    el.toggleKey.addEventListener('click', () => {
+      const isPassword = el.apiKey.type === 'password';
+      el.apiKey.type = isPassword ? 'text' : 'password';
+      const icon = el.toggleKey.querySelector('img');
+      icon.src = isPassword ? 'https://img.icons8.com/small/16/visible.png' : 'https://img.icons8.com/small/16/invisible.png';
+      icon.alt = isPassword ? 'visible' : 'invisible';
+      // Animação suave no ícone
+      gsap.to(icon, { duration: 0.2, scale: 1.2, yoyo: true, repeat: 1, ease: "power2.inOut" });
+    });
 
     const app = {
       transcriptionURL: '', // URL onde a transcrição será consultada
@@ -71,6 +89,9 @@
 
       // Aguarda até que a transcrição esteja disponível na Cloudinary
       waitForTranscription: async () => {
+        el.loader.classList.remove('hidden'); // Mostra o loader
+        gsap.fromTo(el.loader, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5 });
+
         const maxTentativas = 30;
         const delay = 2000; // intervalo de 2 segundos entre tentativas
 
@@ -84,6 +105,7 @@
               // Se a transcrição estiver disponível, salva a URL e retorna sucesso
               app.transcriptionURL = url;
               console.log('Transcrição encontrada', url);
+              el.loader.classList.add('hidden'); // Esconde o loader
               return true;
             }
           } catch (error) {
@@ -96,6 +118,7 @@
           }
         }
 
+        el.loader.classList.add('hidden'); // Esconde o loader mesmo se falhar
         console.log('Transcrição não encontrada após várias tentativas.');
         return false;
       },
@@ -205,6 +228,9 @@ ${transcription}`;
             const viralMomentURL = `https://res.cloudinary.com/${config.cloudName}/video/upload/${viralMoment}/${app.public_id}.mp4`;
             el.video.setAttribute('src', viralMomentURL);
 
+            // Animação para o vídeo aparecer
+            gsap.fromTo(el.video, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.8, ease: "back.out(1.7)" });
+
           } catch (error) {
             console.log({ error });
           }
@@ -217,10 +243,54 @@ ${transcription}`;
       if (!el.apiKey.value) {
         alert('Por favor, informe sua chave de API do GEMINI para continuar.');
         el.apiKey.focus();
+        gsap.to(el.apiKey, { duration: 0.3, x: -10, yoyo: true, repeat: 3, ease: "power2.inOut" });
         return;
       }
       myWidget.open();
+      // Animação do botão ao clicar
+      gsap.to(el.button, { duration: 0.2, scale: 0.95, yoyo: true, repeat: 1, ease: "power2.inOut" });
     }, false);
+  </script>
+
+  <script>
+    // Animações GSAP para tornar o site mais impactante
+    gsap.set("header", { y: -100, opacity: 0 });
+    gsap.set(".interface-box", { y: 50, opacity: 0, scale: 0.9 });
+    gsap.set(".video-container", { y: 50, opacity: 0 });
+    gsap.set("footer", { y: 100, opacity: 0 });
+    gsap.set(".video-player", { opacity: 0, scale: 0.8 });
+
+    gsap.to("header", { duration: 1, y: 0, opacity: 1, ease: "power2.out" });
+    gsap.to(".interface-box", { duration: 1, delay: 0.3, y: 0, opacity: 1, scale: 1, ease: "back.out(1.7)" });
+    gsap.to(".video-container", { duration: 1, delay: 0.6, y: 0, opacity: 1, ease: "power2.out" });
+    gsap.to("footer", { duration: 1, delay: 0.9, y: 0, opacity: 1, ease: "power2.out" });
+
+    // Animação adicional para o logo
+    gsap.from(".logo img", { duration: 0.8, delay: 0.2, rotation: -180, scale: 0, ease: "back.out(1.7)" });
+    gsap.from(".logo h1", { duration: 0.8, delay: 0.4, x: -50, opacity: 0, ease: "power2.out" });
+
+    // Animação para os links do nav
+    gsap.from("nav a", { duration: 0.6, delay: 0.6, y: -20, opacity: 0, stagger: 0.1, ease: "power2.out" });
+
+    // Animação para o botão de upload
+    gsap.fromTo(
+      ".cloudinary-button",
+      { opacity: 0, y: 30, scale: 0.8 },
+      { duration: 0.8, delay: 1, opacity: 1, y: 0, scale: 1, ease: "back.out(1.7)" }
+    );
+
+    // Efeito de glow pulsante no botão
+    gsap.to(".cloudinary-button", {
+      duration: 1.8,
+      boxShadow: "0 0 36px rgba(255,107,107,0.7), inset 0 0 18px rgba(255,255,255,0.18)",
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+      delay: 2.2
+    });
+
+    // Animação para os inputs
+    gsap.from(".input-group", { duration: 0.8, delay: 0.8, x: -30, opacity: 0, ease: "power2.out" });
   </script>
 
 <footer>
